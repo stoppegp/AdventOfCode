@@ -2,9 +2,9 @@ from adventofcode.common import run, input_to_lines, input_to_grid
 import math
 
 
-def peaks_from_here(grid, pos, grid_scores):
+def peaks_from_here(grid, pos, grid_scores, skip_storage = False):
     x, y = pos
-    if grid_scores[y][x] is not None:
+    if grid_scores[y][x] is not None and skip_storage == False:
         return grid_scores[y][x]
     val = grid[y][x]
     if val == 9:
@@ -13,22 +13,22 @@ def peaks_from_here(grid, pos, grid_scores):
     peaks = set()
     # up
     if y > 0 and grid[y-1][x] == val+1:
-        peaks.update(peaks_from_here(grid, (x, y-1), grid_scores))
+        peaks.update(peaks_from_here(grid, (x, y-1), grid_scores, skip_storage))
     #left
     if x > 0 and grid[y][x-1] == val+1:
-        peaks.update(peaks_from_here(grid, (x-1, y), grid_scores))
+        peaks.update(peaks_from_here(grid, (x-1, y), grid_scores, skip_storage))
     # down
     if y < len(grid)-1 and grid[y+1][x] == val+1:
-        peaks.update(peaks_from_here(grid, (x, y+1), grid_scores))
+        peaks.update(peaks_from_here(grid, (x, y+1), grid_scores, skip_storage))
     # right
     if x < len(grid[0]) - 1 and grid[y][x+1] == val+1:
-        peaks.update(peaks_from_here(grid, (x+1, y), grid_scores))
+        peaks.update(peaks_from_here(grid, (x+1, y), grid_scores, skip_storage))
     grid_scores[y][x] = list(peaks)
     return peaks
 
-def trails_from_here(grid, pos, grid_scores):
+def trails_from_here(grid, pos, grid_scores, skip_storage = False):
     x, y = pos
-    if grid_scores[y][x] is not None:
+    if grid_scores[y][x] is not None and skip_storage == False:
         return grid_scores[y][x]
     val = grid[y][x]
     if val == 9:
@@ -37,16 +37,16 @@ def trails_from_here(grid, pos, grid_scores):
     trails = 0
     # up
     if y > 0 and grid[y-1][x] == val+1:
-        trails += trails_from_here(grid, (x, y-1), grid_scores)
+        trails += trails_from_here(grid, (x, y-1), grid_scores, skip_storage)
     #left
     if x > 0 and grid[y][x-1] == val+1:
-        trails += trails_from_here(grid, (x-1, y), grid_scores)
+        trails += trails_from_here(grid, (x-1, y), grid_scores, skip_storage)
     # down
     if y < len(grid)-1 and grid[y+1][x] == val+1:
-        trails += trails_from_here(grid, (x, y+1), grid_scores)
+        trails += trails_from_here(grid, (x, y+1), grid_scores, skip_storage)
     # right
     if x < len(grid[0]) - 1 and grid[y][x+1] == val+1:
-        trails += trails_from_here(grid, (x+1, y), grid_scores)
+        trails += trails_from_here(grid, (x+1, y), grid_scores, skip_storage)
     grid_scores[y][x] = trails
     return trails
 
@@ -68,10 +68,10 @@ def part1(input, part):
     sum = 0
     for x, y in trailheads:
         if part == 1:
-            peaks_from_here(grid, (x, y), grid_scores)
+            peaks_from_here(grid, (x, y), grid_scores, True)
             sum += len(grid_scores[y][x])
         else:
-            trails_from_here(grid, (x, y), grid_scores2)
+            trails_from_here(grid, (x, y), grid_scores2, True)
             sum += grid_scores2[y][x]
     return sum
 
