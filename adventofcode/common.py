@@ -32,7 +32,7 @@ def run(cb1 = None, cb2 = None):
         with open(os.path.join(base_path, "solution1")) as f:
             solution = f.read()
         solution_sim = cb1(example, part=1)
-        if str(solution_sim) != solution:
+        if str(solution_sim) != solution and solution != "":
             print(f"Example did not run correctly! Was: {solution_sim} / Should be: {solution}")
         else:
             print(f"Example was calculated correctly. Running with real input...")
@@ -47,7 +47,7 @@ def run(cb1 = None, cb2 = None):
         with open(os.path.join(base_path, "solution2")) as f:
             solution = f.read()
         solution_sim = cb2(example, part=2)
-        if str(solution_sim) != solution:
+        if str(solution_sim) != solution and solution != "":
             print(f"Example did not run correctly! Was: {solution_sim} / Should be: {solution}")
         else:
             print(f"Example was calculated correctly. Running with real input...")
