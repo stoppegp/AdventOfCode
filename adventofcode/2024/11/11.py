@@ -1,6 +1,5 @@
 from adventofcode.common import run, input_to_lines, input_to_grid
 from functools import cache
-from scipy import interpolate
 import math
 
 @cache
@@ -22,42 +21,84 @@ def blink(stones):
         new_stones.extend(blink_one(stone))
     return tuple(new_stones)
 
-def part1(input, part):
-    stones_base = tuple([int(x) for x in input.split()])
-    sum = 0
-    for stone in stones_base:
-        y0 = 0
-        x0 = 0
-        x = []
-        y = []
-        stones = tuple([stone])
-        for i in range(30):
-            stones = blink(stones)
-            print(len(stones))
-            if i == 2:
-                y0 = math.log(len(stones), 10)
-                x0 = i
-            if i > 1:
-                x.append(i)
-                y.append(math.log(len(stones), 10))
-
-        x1 = i
-        y1 = math.log(len(stones), 10)
-
-        b = (y1-y0)/(x1-x0)
-        c = y1 - b * x1
-
-        if part == 1:
-            check = 24
+def count_on(current, next_stones):
+    #ret = {x: 0 for x in next_stones.keys()}
+    ret = {}
+    for stone, ct in current.items():
+        if stone in next_stones.keys():
+            for st, ct2 in next_stones[stone].items():
+                if st not in ret.keys():
+                    ret[st] = 0
+                ret[st] += ct*ct2
         else:
-            check = 74
+            new_stones = blink_one(stone)
+            #next_stones[stone] = {}
+            for new_stone in new_stones:
+                if new_stone not in ret.keys():
+                    ret[new_stone] = 0
+                ret[new_stone] += 1*ct
+                #if new_stone not in next_stones[stone].keys():
+                #    next_stones[stone][new_stone] = 0
+                #next_stones[stone][new_stone] += 1
 
-        f = interpolate.interp1d(x, y, kind='linear', fill_value="extrapolate")
+    return ret, next_stones
 
-        sum += round(10**f(check))
-        #sum += round(10**(b*check+c))
-    return sum
+def part1(input, part):
+    stones = tuple([int(x) for x in input.split()])
+    #for stone in stones_base:
+    y0 = 0
+    x0 = 0
+
+    if part == 1:
+        target_no = 25
+    else:
+        target_no = 75
+
+    final_no = 0
+
+
+    #stones = tuple([stone])
+    # for i in range(target_no):
+    #     print(f"initial scan: {i}")
+    #     stones_set = set(stones)
+    #     stones = blink(stones)
+    #     print(len(set(stones)))
+    #     if set(stones) == stones_set:
+    #         break
+    #
+    # if i == target_no-1:
+    #     final_no += len(stones)
+    #     return final_no
+    #
+    # next_stones = {x: {} for x in stones_set}
+    # for stone in stones_set:
+    #     new_stones = blink_one(stone)
+    #     for test_stone in stones_set:
+    #         next_stones[stone][test_stone] = new_stones.count(test_stone)
+    # #print(next_stones)
+    #
+    # current_no = i
+
+
+    current_no = 0
+    stones_cur = {x: stones.count(x) for x in set(stones)}
+    next_stones = {}
+    print(current_no)
+    for i in range(current_no, target_no):
+        print(i)
+        print(stones_cur)
+        stones_cur, next_stones = count_on(stones_cur, next_stones)
+        print(next_stones)
+        print(sum(list(stones_cur.values())))
+        print()
+
+    #f = interpolate.interp1d(x, y, kind='linear', fill_value="extrapolate")
+
+    #sum += round(10**f(check))
+
+    return sum(list(stones_cur.values()))
+
 
 if __name__ == '__main__':
-    #run(cb1=part1)
+    run(cb1=part1)
     run(cb2=part1)
