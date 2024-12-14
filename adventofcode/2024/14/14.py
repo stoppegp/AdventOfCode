@@ -1,8 +1,6 @@
 from adventofcode.common import run, input_to_grid, input_to_lines
 import re
-from tqdm import tqdm
 from functools import cache
-
 
 def robot_move(pos, vel, t, len_x, len_y):
     x_new = (pos[0]+vel[0]*t) % len_x
@@ -46,13 +44,17 @@ def check_v_line(robots_pos, len_x, len_y, v_lines):
     return False
 
 def print_robots(robot_pos, len_x, len_y):
-    for x in range(len_x):
-        for y in range(len_y):
+    for y in range(len_y):
+        for x in range(len_x):
             if (x, y) in robot_pos:
                 print("X", end="")
             else:
                 print(".", end="")
         print("\n", end="")
+
+def var(x):
+    mean = sum(x)/len(x)
+    return sum([(a-mean)**2 for a in x])/len(x)
 
 def part1(input, part, example=False):
 
@@ -78,15 +80,31 @@ def part1(input, part, example=False):
 
     print("")
     robots_pos = [x[0] for x in robots]
+    var_x_avg = 0
+    var_y_avg = 0
     for t in range(1,1+sim_time):
         print(f"{t}s", end="\r")
         for ix, robot in enumerate(robots):
             robots_pos[ix] = robot_move(robot[0], robot[1], t, len_x, len_y)
 
-        if part == 2 and check_v_line(robots_pos, len_x, len_y, v_lines):
-            print("")
-            print_robots(robots_pos, len_x, len_y)
-            return t
+        if part == 2:
+            var_x = var([x[0] for x in robots_pos])
+            var_y = var([x[1] for x in robots_pos])
+            if t <= 10:
+                #print(var_this)
+                var_x_avg += var_x/10
+                var_y_avg += var_y / 10
+            if t == 10:
+                print(f"var x avg: {var_x_avg}")
+                print(f"var y avg: {var_y_avg}")
+            if t > 10 and var_x < var_x_avg*0.7 and var_y < var_y_avg*0.7:
+                print("bingo")
+                print(var_x)
+                print(var_y)
+                print_robots(robots_pos, len_x, len_y)
+                return t
+
+
 
     if part == 1:
         return count_quadrants(robots_pos, len_x, len_y)
