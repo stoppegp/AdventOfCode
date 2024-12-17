@@ -29,13 +29,19 @@ def run(cb1 = None, cb2 = None):
             example = f.read()
     if cb1 is not None:
         print(f"Running part 1...")
-        with open(os.path.join(base_path, "solution1")) as f:
-            solution = f.read()
-        solution_sim = cb1(example, part=1)
+        try:
+            with open(os.path.join(base_path, "solution1")) as f:
+                solution = f.read()
+        except:
+            solution = ""
+        solution_sim = cb1(example, part=1, example=True)
         if str(solution_sim) != solution and solution != "":
             print(f"Example did not run correctly! Was: {solution_sim} / Should be: {solution}")
         else:
-            print(f"Example was calculated correctly. Running with real input...")
+            if solution != "":
+                print(f"Example was calculated correctly. Running with real input...")
+            else:
+                print(f"Running with real input...")
             start_time = time.process_time()
             input_solution = cb1(input, part=1)
             end_time = time.process_time()
@@ -44,13 +50,19 @@ def run(cb1 = None, cb2 = None):
 
     if cb2 is not None:
         print(f"Running part 2...")
-        with open(os.path.join(base_path, "solution2")) as f:
-            solution = f.read()
-        solution_sim = cb2(example, part=2)
+        try:
+            with open(os.path.join(base_path, "solution2")) as f:
+                solution = f.read()
+        except:
+            solution = ""
+        solution_sim = cb2(example, part=2, example=True)
         if str(solution_sim) != solution and solution != "":
             print(f"Example did not run correctly! Was: {solution_sim} / Should be: {solution}")
         else:
-            print(f"Example was calculated correctly. Running with real input...")
+            if solution != "":
+                print(f"Example was calculated correctly. Running with real input...")
+            else:
+                print(f"Running with real input...")
             start_time = time.process_time()
             input_solution = cb2(input, part=2)
             end_time = time.process_time()
