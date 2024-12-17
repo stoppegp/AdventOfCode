@@ -21,50 +21,30 @@ def input_to_grid(input):
     lines = input_to_lines(input)
     return [list(x) for x in lines]
 
-def run(cb1 = None, cb2 = None):
+def run(cb = None, example_file = None, solution_file = None, *args, **kwargs):
     base_path = os.path.dirname(inspect.getframeinfo(inspect.getouterframes(inspect.currentframe())[1][0])[0])
     with open(os.path.join(base_path, "input")) as f:
         input = f.read()
-        with open(os.path.join(base_path, "example")) as f:
-            example = f.read()
-    if cb1 is not None:
-        print(f"Running part 1...")
-        try:
-            with open(os.path.join(base_path, "solution1")) as f:
-                solution = f.read()
-        except:
-            solution = ""
-        solution_sim = cb1(example, part=1, example=True)
-        if str(solution_sim) != solution and solution != "":
-            print(f"Example did not run correctly! Was: {solution_sim} / Should be: {solution}")
-        else:
-            if solution != "":
-                print(f"Example was calculated correctly. Running with real input...")
-            else:
-                print(f"Running with real input...")
-            start_time = time.process_time()
-            input_solution = cb1(input, part=1)
-            end_time = time.process_time()
-            print(f"Solution: {input_solution}")
-            print(f"Took {end_time-start_time}s")
 
-    if cb2 is not None:
-        print(f"Running part 2...")
+    print(f"Running...")
+    if example_file is not None:
+        with open(os.path.join(base_path, example_file)) as f:
+            example = f.read()
         try:
-            with open(os.path.join(base_path, "solution2")) as f:
+            with open(os.path.join(base_path, solution_file)) as f:
                 solution = f.read()
         except:
             solution = ""
-        solution_sim = cb2(example, part=2, example=True)
+        solution_sim = cb(example, example=True, *args, **kwargs)
         if str(solution_sim) != solution and solution != "":
             print(f"Example did not run correctly! Was: {solution_sim} / Should be: {solution}")
-        else:
-            if solution != "":
-                print(f"Example was calculated correctly. Running with real input...")
-            else:
-                print(f"Running with real input...")
-            start_time = time.process_time()
-            input_solution = cb2(input, part=2)
-            end_time = time.process_time()
-            print(f"Solution: {input_solution}")
-            print(f"Took {end_time-start_time}s")
+            return
+        elif str(solution_sim) == solution:
+            print(f"Example was calculated correctly.")
+
+    print(f"Running with real input...")
+    start_time = time.process_time()
+    input_solution = cb(input, *args, **kwargs)
+    end_time = time.process_time()
+    print(f"Solution: {input_solution}")
+    print(f"Took {end_time-start_time}s")
