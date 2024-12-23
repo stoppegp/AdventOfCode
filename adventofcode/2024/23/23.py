@@ -31,17 +31,14 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
     def expand_clusters(clusters, all_pcs):
         new_clusters = set()
         for cluster in clusters:
-            possible_new_pcs = {y for x in cluster for y in all_pcs[x]}
-            for new_pc in possible_new_pcs:
-                if new_pc in cluster:
-                    continue
-                add_to_cluster = True
-                for pc in cluster:
-                    if not new_pc in all_pcs[pc]:
-                        add_to_cluster = False
-                        break
-                if add_to_cluster:
-                    new_clusters.add(frozenset([*cluster, new_pc]))
+            new_set = None
+            for pc in cluster:
+                if new_set is None:
+                    new_set = all_pcs[pc]
+                else:
+                    new_set = new_set.intersection(all_pcs[pc])
+            for new_pc in new_set:
+                new_clusters.add(frozenset([*cluster, new_pc]))
         return new_clusters
 
     if part == 1:
@@ -50,7 +47,6 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
     clusters = triplets
     while True:
         new_clusters = expand_clusters(clusters, all_pcs)
-        print(len(new_clusters))
         if len(new_clusters) > 0:
             clusters = new_clusters
         else:
@@ -63,5 +59,5 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
 
 
 if __name__ == '__main__':
-    #run(cb=puzzle, example_file="example", solution_file="solution1")
+    run(cb=puzzle, example_file="example", solution_file="solution1")
     run(cb=puzzle, example_file="example", solution_file="solution2", part=2)
