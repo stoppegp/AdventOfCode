@@ -30,11 +30,6 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
     def get_wire_value(wirename, wire_values, gates):
         (op1, op2), optype = gates[wirename]
 
-        if op1[0] == "x" or op1[0] == "y":
-            print(f"-> {op1}")
-        if op2[0] == "x" or op2[0] == "y":
-            print(f"-> {op2}")
-        print(f"{wirename} | {op1} / {op2} | {optype}")
         for operand in [op1, op2]:
             if operand not in wire_values.keys():
                 get_wire_value(operand, wire_values, gates)
@@ -69,16 +64,14 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
             return findings[0]
         else:
             print(findings)
-            raise Exception("too many findings")
+            raise Exception("too many or zero findings")
 
     def check_gate(gate, op1, op2, opname):
         return ((gate[0][0] == op1 and gate[0][1] == op2) or (
                 gate[0][0] == op2 and gate[0][1] == op1)) and gate[1] == opname
 
-    if part == 2:
-        switches = [("z16", "fkb"), ('rqf', 'nnr'), ('z31', 'rdn'), ('z37', 'rrn')]
-        print(",".join(sorted([y for x in switches for y in x])))
-        #switches = []
+    def find_switch(gates0, switches):
+        gates = gates0.copy()
 
         for switch in switches:
             ng0 = gates[switch[1]]
@@ -88,40 +81,41 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
             gates[switch[0]] = ng0
             gates[switch[1]] = ng1
 
-
-        x_wire_names = [x for x in wire_values.keys() if x[0] == "x"]
-        x = int("".join([str(wire_values[x]) for x in reversed(sorted(x_wire_names))]), 2)
-        print(f"x: {x}")
-        y_wire_names = [x for x in wire_values.keys() if x[0] == "y"]
-        y = int("".join([str(wire_values[x]) for x in reversed(sorted(y_wire_names))]), 2)
-        print(f"y: {y}")
-        target = x + y
-        print(f"target: {target}")
-        target_list = [int(x) for x in reversed(list(f"{target:0b}"))]
-
-        spillover = 0
-        fails = 0
         op1_old = ""
         op2_old = ""
         for ix, wirename in enumerate(sorted(z_wire_names)):
             if ix < 1:
                 continue
+
+
+
             wireno = int(wirename[1:])
+            wirenobef = wireno - 1
             (op1t, op2t), opname = gates[wirename]
+
+            if ix == len(z_wire_names)-1:
+                if opname != "OR":
+                    raise Exception()
+                if not (check_gate(gates[op1t], f"x{wirenobef:02}", f"y{wirenobef:02}", "AND") or check_gate(gates[op2t], f"x{wirenobef:02}", f"y{wirenobef:02}", "AND")):
+                    raise Exception()
+                if not (check_gate(gates[op1t], op1_old, op2_old, "AND") or check_gate(gates[op2t], op1_old, op2_old, "AND")):
+                    raise Exception()
+                return None
+
             if opname != "XOR":
-                print("error0")
-                print(wirename)
+                print(f"{wirename}: gate of {wirename} is completely wrong!")
+                #print(wirename)
                 print(gates[wirename])
                 # gate of z is wrong
                 # look for correct gate
                 temp1 = find_gate(f"x{wireno:02}", f"y{wireno:02}", "XOR")
                 temp2 = find_gate(temp1, None, "XOR")
                 print(f"switch {wirename} with {temp2}")
-                raise Exception()
+                return (wirename, temp2)
 
             gate1t = gates[op1t]
             gate2t = gates[op2t]
-            if gate1t[1] == "XOR":
+            if gate1t[1] == "XOR" or gate2t[1] == "OR":
                 gate1 = gate1t
                 gate2 = gate2t
                 op1 = op1t
@@ -141,38 +135,50 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
             if not check_gate(gate1, f"x{wireno:02}", f"y{wireno:02}", "XOR"):
                 error1 = True
 
-
             if ix >= 2:
                 # check gate 2
                 wirenobef = wireno - 1
                 if gate2[1] != "OR":
                     error2 = True
 
-
-                if error1 and error2:
-                    print("error1+2")
-                    print(wirename)
-                    print(gates[wirename])
+            if error1 and error2:
+                print(f"{wirename}: Gates 1 and 2 are wrong!")
+                #print(wirename)
+                #print(gates[wirename])
+                try:
                     temp1 = find_gate(f"x{wireno:02}", f"y{wireno:02}", "XOR")
-                    print(temp1)
                     temp2 = find_gate(temp1, None, "XOR")
                     print(f"switch {wirename} with {temp2}")
-                elif error1:
-                    print("error1")
-                    print(wirename)
-                    print(gates[wirename])
-                    temp1 = find_gate(f"x{wireno:02}", f"y{wireno:02}", "XOR")
-                    print(f"switch {op1} with {temp1}")
-                elif error2:
-                    print("error2")
-                    print(wirename)
-                    print(gates[wirename])
-                    temp1 = find_gate(f"x{wirenobef:02}", f"y{wirenobef:02}", "AND")
-                    temp2 = find_gate(temp1, None, "OR")
-                    print(temp1)
-                    print(f"switch {op2} with {temp2}")
-                    raise Exception()
+                    return (wirename, temp2)
+                except:
+                    try:
+                        temp1 = find_gate(f"x{wireno:02}", f"y{wireno:02}", "XOR")
+                        print(f"switch {op1} with {temp1}")
+                        return (op1, temp1)
+                    except:
+                        temp1 = find_gate(f"x{wirenobef:02}", f"y{wirenobef:02}", "AND")
+                        temp2 = find_gate(temp1, None, "OR")
+                        # print(temp1)
+                        print(f"switch {op2} with {temp2}")
+                        return (op2, temp2)
+            elif error1:
+                print(f"{wirename}: Gate 1 is wrong!")
+                #print(wirename)
+                #print(gates[wirename])
+                temp1 = find_gate(f"x{wireno:02}", f"y{wireno:02}", "XOR")
+                print(f"switch {op1} with {temp1}")
+                return (op1, temp1)
+            elif error2:
+                print(f"{wirename}: Gate 2 is wrong!")
+                #print(wirename)
+                #print(gates[wirename])
+                temp1 = find_gate(f"x{wirenobef:02}", f"y{wirenobef:02}", "AND")
+                temp2 = find_gate(temp1, None, "OR")
+                #print(temp1)
+                print(f"switch {op2} with {temp2}")
+                return (op2, temp2)
 
+            if ix >= 2:
                 gate2at = gates[gate2[0][0]]
                 gate2bt = gates[gate2[0][1]]
                 if gate2at[0][0][0] in ["x", "y"]:
@@ -198,10 +204,26 @@ def puzzle(input, part=1, example=False, *args, **kwargs):
             #print(op1_old)
             #print(op2_old)
 
+    if part == 2:
+
+
+        switches = []
+
+        while True:
+            new_switches = find_switch(gates, switches)
+            if new_switches is not None:
+                switches = [*switches, new_switches]
+            else:
+                break
+        return ",".join(sorted([y for x in switches for y in x]))
+        #switches = []
+
+
+
     return None
 
 
 
 if __name__ == '__main__':
-    #run(cb=puzzle, example_file="example", solution_file="solution1")
+    run(cb=puzzle, example_file="example", solution_file="solution1")
     run(cb=puzzle, example_file="example", solution_file="solution2", part=2)
